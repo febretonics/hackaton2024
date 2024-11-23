@@ -11,8 +11,8 @@ except Exception as e:
     print(e)
 
 
-st.set_page_config(layout="wide", page_title="FPI IMAGE ANALYZER")
-
+st.set_page_config(layout="wide", page_title="Lung Anomaly Detection APP")
+     
 STYLE = """
 <style>
 img {
@@ -32,12 +32,27 @@ class FileUpload(object):
     def __init__(self):
         self.fileTypes = ["csv", "png", "jpg"]
 
+    def send_to_api(self, url, data, file=None):
+        """
+        Envía los datos y el archivo cargado a una API
+        :param url: Endpoint de la API
+        :param data: Diccionario con los datos del formulario
+        :param file: Archivo a enviar (opcional)
+        :return: Respuesta de la API
+        """
+        try:
+            files = {'file': file} if file else None
+            response = requests.post(url, data=data, files=files)
+            return response
+        except Exception as e:
+            return {"error": str(e)}
+
     def run(self):
         """
         Upload File on Streamlit Code
         :return:
         """
-        st.info(__doc__)
+        
         st.markdown(STYLE, unsafe_allow_html=True)
 
         
@@ -54,19 +69,19 @@ class FileUpload(object):
              justify-content: space-between;
                 align-items: center;
                 height: 60px;
-                background-color: #1e1e1e; /* Color de fondo */
+                background-color: #abebc6 ; /* Color de fondo */
              padding: 0 20px;
-                color: green;
+                color: black;
                 font-family: Arial, sans-serif;
                 font-size: 40px;
                 font-weight: bold;
          }}
             .custom-bar img {{
-            height: 70px; /* Tamaño del logo */
+            height: 50px; /* Tamaño del logo */
             }}
         </style>
         <div class="custom-bar">
-        <div>FPI IMAGE ANALYZER</div>
+        <div>Lung Anomaly Detection APP</div>
         <img src="data:image/png;base64,{logo_base64}" alt="Logo">
         </div>
         """
@@ -75,29 +90,29 @@ class FileUpload(object):
         #st.markdown(logo_html, unsafe_allow_html=True)
 
         # Título
-        st.title("ADQUISICION DE DATOS")
+        st.title("DATA ACQUISITION")
 
         # Informacion personal
-        st.write("### INFORMACION PERSONAL DEL PACIENTE")
+        st.write("### PERSONAL PATIENT INFORMATION")
 
         c3,c4 = st.columns([1,1])
         with c3:
-            pname = st.text_input("Nombre")
+            pname = st.text_input("Name")
             age = st.number_input("Age", min_value=0, max_value=120, step=1)
-            weight = st.text_input("Peso")
+            weight = st.text_input("Weigth")
             
             
             
         with c4:
-            psurname = st.text_input("Apellidos")
-            height = st.text_input("Altura")
-            sip = st.text_input("Numero de SIP")
+            psurname = st.text_input("Surnames")
+            height = st.text_input("Height")
+            sip = st.text_input("SIP Number")
             
 
         # Campos de entrada
-        st.write("### INFORMACION PATOLOGICA DEL PACIENTE")
+        st.write("### PATHOLOGICAL PATIENT INFORMATION")
         # Carga de archivo
-        file = st.file_uploader("Subir archivo", type=["csv", "png", "jpg"])
+        file = st.file_uploader("Upload File", type=["csv", "png", "jpg"])
 
         c1,c2 = st.columns([1,1])
         with c1:
@@ -112,9 +127,9 @@ class FileUpload(object):
         if st.button("SEND"):
             # Validar datos ingresados
             if not fvc or not fvc_percent or not sex or not smoking or not pname or not psurname or not weight or not height:
-                st.error("Por favor, completa todos los campos del formulario.")
+                st.error("Please complete all fields in the form")
             elif file is None:
-                st.error("Por favor, sube un archivo.")
+                st.error("Please upload a file.")
             else:
 
                 # Datos a enviar a la API
@@ -129,6 +144,7 @@ class FileUpload(object):
                     "age": age,
                     "weight": weight,
                     "height": height,
+                    "sip": sip,
                 }
                 # Archivo cargado
                 if file is not None:
@@ -145,21 +161,25 @@ class FileUpload(object):
 
                 # Mostrar respuesta
                 if isinstance(response, dict) and "error" in response:
-                    st.error(f"Error al enviar datos: {response['error']}")
+                    st.error(f"Error sending data: {response['error']}")
                 else:
-                    st.success("¡Datos enviados con éxito!")
-                    st.write("### Respuesta de la API:")
+                    st.success("¡Data sent successfully!")
+                    st.write("### API Response:")
                     st.write(response.json())
 
                 # Mostrar resultados del formulario
-                st.success("¡Datos enviados con éxito!")
-                st.write("### Información proporcionada:")
-                st.write("### Información proporcionada:")
-                st.write(f"- **FVC (Capacidad Pulmonar):** {fvc} ml")
-                st.write(f"- **FVC como porcentaje del típico:** {fvc_percent}%")
-                st.write(f"- **Edad:** {age}")
-                st.write(f"- **Sexo:** {sex}")
-                st.write(f"- **Fumador:** {smoking}")
+                st.success("¡Data sent successfully!")
+                st.write("### PERSONAL PATIENT INFORMATION:")
+                st.write(f"- **Name:** {pname}")
+                st.write(f"- **Surnames:** {psurname}")
+                st.write(f"- **Age:** {age}")
+                st.write(f"- **Weight:** {weight} Kg")
+                st.write(f"- **Height:** {height} m")
+                st.write("### PATHOLOGICAL PATIENT INFORMATION:")
+                st.write(f"- **FVC:** {fvc}ml")
+                st.write(f"- **FVC as a percentage of the typical:** {fvc_percent}%")
+                st.write(f"- **Sex:** {sex}")
+                st.write(f"- **Smoking:** {smoking}")
 
 
                 # Procesar el archivo cargado
@@ -171,13 +191,13 @@ class FileUpload(object):
                     img_width = 300
 
                     with col1:
-                        st.image(file, caption="Imagen 1 (lado izquierdo)", width=img_width)
+                        st.image(file, caption="Image 1 (Left)", width=img_width)
 
                     with col2:
-                        st.image(file, caption="Imagen 2 (lado derecho)", width=img_width)
+                        st.image(file, caption="Image 2 (Right)", width=img_width)
                 else:
                     data = pd.read_csv(file)
-                    st.write("### Contenido del archivo CSV:")
+                    st.write("### CSV file content:")
                     st.dataframe(data.head(10))
 
                 file.close()
